@@ -94,6 +94,7 @@ router.post('/getGoods', async (req, res) => {
   }
   sql = utils.setLike(sql, 'name', obj.name)
   sql = utils.setLike(sql, 'address', obj.address)
+  sql = utils.setLike(sql, 'category_id', obj.categoryId)
   //将信息响应给前端
   let { total } = await utils.getSum({ sql, name: 'product_info', res, req })
   sql += ` ORDER BY id DESC`

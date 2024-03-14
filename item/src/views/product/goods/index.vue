@@ -1,6 +1,20 @@
 <template>
   <div class="box">
     <el-form :model="queryParams" ref="queryForm" :inline="true">
+      <el-form-item label="所属类别" prop="categoryId">
+        <el-select
+          v-model="queryParams.categoryId"
+          placeholder="请选择所属类别"
+          size="small"
+        >
+          <el-option
+            v-for="item in categoryList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="商品信息" prop="name">
         <el-input
           v-model="queryParams.name"
@@ -64,7 +78,7 @@
       <el-table-column label="图片" align="center" prop="url">
         <template slot-scope="scope">
           <el-image
-            style="width: 50px; height: 50px"
+            style="width: 70px; height: 70px"
             :src="scope.row.url"
             :preview-src-list="[scope.row.url]"
             fit="cover"
@@ -129,6 +143,20 @@
         :rules="rules"
         ref="ruleForm"
       >
+        <el-form-item label="所属类别" prop="categoryId">
+          <el-select
+            v-model="form.categoryId"
+            placeholder="请选择所属类别"
+            size="small"
+          >
+            <el-option
+              v-for="item in categoryList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入名称" />
         </el-form-item>
@@ -169,7 +197,13 @@
   </div>
 </template>
 <script>
-import { addGoods, getGoods, upGoods, delGoods } from "@/api/product";
+import {
+  addGoods,
+  getGoods,
+  upGoods,
+  delGoods,
+  getCategory,
+} from "@/api/product";
 import { formatUTC } from "@/utils";
 import upFile from "@/components/upFile";
 export default {
@@ -181,6 +215,7 @@ export default {
         page: 1,
         size: 10,
       },
+      categoryList: [],
       total: 0,
       loading: false,
       addLoading: false,
@@ -217,6 +252,7 @@ export default {
   },
   async created() {
     await this.getGoods();
+    this.getCategoryList();
   },
   methods: {
     formatTimeUTC(utcString, format = "YYYY-MM-DD HH:mm:ss") {
@@ -294,6 +330,14 @@ export default {
       this.queryParams.page = 1;
       this.getGoods();
     },
+    async getCategoryList() {
+      const { data } = await getCategory({
+        page: 1,
+        size: 1000,
+      });
+      console.log("data", data);
+      this.categoryList = data;
+    },
   },
 };
 </script>
@@ -306,3 +350,4 @@ export default {
   color: #000;
 }
 </style>
+, getCategory
