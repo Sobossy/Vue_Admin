@@ -48,7 +48,7 @@ router.post('/delCategory', async (req, res) => {
 router.post('/addGoods', async (req, res) => {
   const { name, url, price, sellAmount, inventory, favorites, address, categoryId } = req.body
   let sql =
-    'INSERT INTO product_info (name, url, sellAmount, inventory, favorites, address, category_id) VALUES (?,?,?,?,?,?,?,?)'
+    'INSERT INTO product_info (name, url, sellAmount, price, inventory, favorites, address, category_id) VALUES (?,?,?,?,?,?,?,?)'
   await pools({
     sql,
     val: [name, url, sellAmount, price, inventory, favorites, address, categoryId],

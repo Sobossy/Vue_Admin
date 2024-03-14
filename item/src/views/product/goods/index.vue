@@ -233,6 +233,9 @@ export default {
             trigger: "blur",
           },
         ],
+        categoryId: [
+          { required: true, message: "请输入价格", trigger: "blur" },
+        ],
         price: [{ required: true, message: "请输入价格", trigger: "blur" }],
         inventory: [{ required: true, message: "请录入库存", trigger: "blur" }],
         sellAmount: [
