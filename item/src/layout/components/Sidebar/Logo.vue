@@ -1,41 +1,54 @@
 <template>
-  <div class="sidebar-logo-container" :style="{backgroundColor: variables.menuBg}" :class="{'collapse':collapse}">
+  <div
+    class="sidebar-logo-container"
+    :style="{ backgroundColor: variables.menuBg }"
+    :class="{ collapse: collapse }"
+  >
     <transition name="sidebarLogoFade">
-      <router-link v-if="collapse" key="collapse" class="sidebar-logo-link" to="/">
-        <img v-if="logo" :src="logo" class="sidebar-logo">
-        <h1 v-else class="sidebar-title">{{ title }} </h1>
+      <router-link
+        v-if="collapse"
+        key="collapse"
+        class="sidebar-logo-link"
+        to="/"
+      >
+        <img v-if="logo" :src="logo" class="sidebar-logo" />
+        <h1 v-else class="sidebar-title">{{ title }}</h1>
       </router-link>
       <router-link v-else key="expand" class="sidebar-logo-link" to="/">
-        <img v-if="logo" :src="logo" class="sidebar-logo">
-        <h1 class="sidebar-title">{{ title }} </h1>
+        <img
+          v-if="logo"
+          src="../../../assets/images/vue.png"
+          class="sidebar-logo"
+        />
+        <h1 class="sidebar-title">{{ title }}</h1>
       </router-link>
     </transition>
   </div>
 </template>
 
 <script>
-import variables from '@/styles/variables.scss';
-const defaultSettings = require('../../../settings.js');
+import variables from "@/styles/variables.scss";
+const defaultSettings = require("../../../settings.js");
 export default {
-  name: 'SidebarLogo',
+  name: "SidebarLogo",
   props: {
     collapse: {
       type: Boolean,
-      required: true
-    }
+      required: true,
+    },
   },
-  computed:{
+  computed: {
     variables() {
-      return variables
-    }
+      return variables;
+    },
   },
   data() {
     return {
       title: defaultSettings.title,
-      logo: defaultSettings.logo
-    }
-  }
-}
+      logo: defaultSettings.logo,
+    };
+  },
+};
 </script>
 
 <style lang="scss" scoped>
