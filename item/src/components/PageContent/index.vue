@@ -28,10 +28,16 @@
       >添加商品类别</el-button
     >
 
-    <el-table :data="categoryArr" style="width: 100%" v-loading="loading">
-      <el-table-column type="index" align="center" label="序号" />
-      <el-table-column label="类别名称" align="center" prop="name" />
-      <el-table-column label="状态" align="center" prop="status">
+    <el-table :data="userArr" style="width: 100%" v-loading="loading">
+      <el-table-column type="index" label="序号" width="50" />
+      <el-table-column label="编号" align="center" prop="id" />
+      <el-table-column
+        label="类别名称"
+        align="center"
+        prop="name"
+        :formatter="formatMore"
+      />
+      <el-table-column label="状态" align="center" prop="name">
         <template slot-scope="scope">
           <el-tag v-if="scope.row.status === 1" size="mini" effect="dark"
             >正常</el-tag
@@ -39,27 +45,9 @@
           <el-tag v-else size="mini" effect="dark" type="danger">禁用</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="备注" align="center" prop="remarks" width="350" />
-      <el-table-column
-        label="更新时间"
-        align="center"
-        prop="updateTime"
-        width="150"
-      >
-        <template #default="scope">
-          <span>{{ formatTimeUTC(scope.row.updateTime) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column
-        label="创建时间"
-        align="center"
-        prop="createTime"
-        width="150"
-      >
-        <template #default="scope">
-          <span>{{ formatTimeUTC(scope.row.createTime) }}</span>
-        </template>
-      </el-table-column>
+      <el-table-column label="备注" align="center" prop="remark" />
+      <el-table-column label="更新时间" align="center" prop="updateTime" />
+      <el-table-column label="创建时间" align="center" prop="createTime" />
       <el-table-column label="操作" align="center" width="350">
         <template slot-scope="scope">
           <el-button
@@ -83,7 +71,7 @@
       :total="total"
       :page.sync="queryParams.page"
       :limit.sync="queryParams.size"
-      @pagination="getCategory"
+      @pagination="getUser"
     />
     <el-dialog title="操作框" :visible.sync="dialogVisible" width="40%">
       <el-form
@@ -94,7 +82,7 @@
         ref="ruleForm"
       >
         <el-form-item label="类别名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入类别名称名称" />
+          <el-input v-model="form.name" placeholder="请输入用户名称" />
         </el-form-item>
 
         <el-form-item label="状态" prop="status">
@@ -104,7 +92,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="备注说明">
-          <el-input v-model="form.remarks" placeholder="请输入备注" />
+          <el-input v-model="form.remark" placeholder="请输入备注" />
         </el-form-item>
       </el-form>
 
@@ -119,12 +107,17 @@
 </template>
 <script>
 import {
-  addCategory,
-  getCategory,
-  upCategory,
-  delCategory,
-} from "@/api/product";
-import { formatUTC } from "@/utils";
+  getUser,
+  addUser,
+  upUser,
+  delUser,
+  getMoreAll,
+  upUserPwd,
+  getRolesAll,
+  upTheme,
+} from "@/api/admin";
+import { formatDate } from "@/utils";
+import upFile from "@/components/upFile";
 export default {
   name: "Category",
   data() {
@@ -136,8 +129,11 @@ export default {
       total: 0,
       loading: false,
       addLoading: false,
-      categoryArr: [],
+      userArr: [],
       dialogVisible: false,
+      themeOpen: false,
+      rolesArr: [],
+      moreArr: [],
       search: "",
       form: {},
       rules: {
@@ -161,50 +157,40 @@ export default {
     };
   },
   async created() {
-    this.getCategory();
+    await this.getRoles();
+    await this.getMoreAll();
+    this.getUser();
   },
   methods: {
-    formatTimeUTC(utcString, format = "YYYY-MM-DD HH:mm:ss") {
-      return formatUTC(utcString, format);
+    formatterCreateTime(row) {
+      return formatDate(row.createTime);
     },
     resetForm() {
       this.form = { status: 1 };
     },
-    // 编辑
     handleEdit(index, row) {
       this.resetForm();
       this.form = { ...row };
+      this.$set(this.form, "rolesId", row.rolesId.split(","));
       this.dialogVisible = true;
-    },
-    // 删除
-    handleDelete(index, row) {
-      this.$confirm("确定删除该类别？", "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "error",
-      }).then(async () => {
-        await delCategory({ id: row.id });
-        this.getCategory();
-        this.$message({
-          message: "删除成功！",
-          type: "success",
-        });
+      this.$nextTick(() => {
+        this.$set(this, "fileList", [{ name: "", url: row.url }]);
       });
     },
-
-    // 确定修改
     async affirm() {
       this.$refs["ruleForm"].validate(async (valid) => {
         if (!valid) return;
         try {
+          let list = this.$refs.upFile.getFileRes();
+          if (list.length === 0) {
+            this.form.url = "";
+          } else this.form.url = list[0].url;
           this.addLoading = true;
-          this.form.id
-            ? await upCategory({ ...this.form })
-            : await addCategory({ ...this.form });
+          let rolesId = this.form.rolesId.join(",");
+          this.form.id && (await upUser({ ...this.form, rolesId }));
           this.addLoading = false;
           this.$message.success(this.form.id ? "修改成功！" : "添加成功！");
-          console.log("form", this.form);
-          this.getCategory();
+          this.getUser();
           this.dialogVisible = false;
         } catch (e) {
           this.addLoading = false;
@@ -214,19 +200,27 @@ export default {
     openDialog() {
       this.resetForm();
       this.dialogVisible = true;
+      this.$nextTick(() => {
+        this.$refs.upFile.clearFiles();
+      });
     },
-    async getCategory() {
+    async getMoreAll() {
+      const { data } = await getMoreAll();
+      this.moreArr = data;
+    },
+    async getUser() {
       this.loading = true;
-      const { data, total } = await getCategory(this.queryParams);
+      const { data, total } = await getUser(this.queryParams);
       this.loading = false;
-      this.categoryArr = data;
+      this.userArr = data;
       this.total = total;
     },
     handleQuery() {
       this.queryParams.page = 1;
-      this.getCategory();
+      this.getUser();
     },
   },
+  components: { upFile },
 };
 </script>
 <style scoped lang="scss">
