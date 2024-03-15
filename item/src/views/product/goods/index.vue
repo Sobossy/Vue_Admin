@@ -6,6 +6,7 @@
           v-model="queryParams.categoryId"
           placeholder="请选择所属类别"
           size="small"
+          clearable
         >
           <el-option
             v-for="item in categoryList"
@@ -37,20 +38,33 @@
           :precision="2"
           :step="0.1"
           :min="0"
-        />-
+          size="small"
+        />
+        <span class="inputRadius">-</span>
         <el-input-number
           v-model="queryParams.maxPrice"
           :precision="2"
           :step="0.1"
+          size="small"
         />
       </el-form-item>
       <el-form-item label="销量区间">
-        <el-input-number v-model="queryParams.minSellAmount" :min="0" />-
-        <el-input-number v-model="queryParams.maxSellAmount" />
+        <el-input-number
+          v-model="queryParams.minSellAmount"
+          :min="0"
+          size="small"
+        />
+        <span class="inputRadius">-</span>
+        <el-input-number v-model="queryParams.maxSellAmount" size="small" />
       </el-form-item>
       <el-form-item label="收藏数区间">
-        <el-input-number v-model="queryParams.minFavorites" :min="0" />-
-        <el-input-number v-model="queryParams.maxFavorites" />
+        <el-input-number
+          v-model="queryParams.minFavorites"
+          :min="0"
+          size="small"
+        />
+        <span class="inputRadius">-</span>
+        <el-input-number v-model="queryParams.maxFavorites" size="small" />
       </el-form-item>
       <el-form-item>
         <el-button
@@ -254,15 +268,22 @@ export default {
     };
   },
   async created() {
-    await this.getGoods();
-    this.getCategoryList();
+    if (this.$route.query.id) {
+      this.queryParams.categoryId = this.$route.query.id;
+    }
+    await this.getCategoryList();
+    this.getGoods();
+  },
+  activated() {
+    // 在组件被激活时执行的操作
+    if (this.$route.query.id) {
+      this.queryParams.categoryId = this.$route.query.id;
+    }
+    this.getGoods();
   },
   methods: {
     formatTimeUTC(utcString, format = "YYYY-MM-DD HH:mm:ss") {
       return formatUTC(utcString, format);
-    },
-    handleChange(value) {
-      console.log(value);
     },
     resetForm() {
       this.form = { status: 1 };
@@ -307,7 +328,6 @@ export default {
             : await addGoods({ ...this.form });
           this.addLoading = false;
           this.$message.success(this.form.id ? "修改成功！" : "添加成功！");
-          console.log("form", this.form);
           this.getGoods();
           this.dialogVisible = false;
         } catch (e) {
@@ -338,7 +358,6 @@ export default {
         page: 1,
         size: 1000,
       });
-      console.log("data", data);
       this.categoryList = data;
     },
   },
@@ -352,5 +371,10 @@ export default {
   margin-bottom: 10px;
   color: #000;
 }
+.inputRadius {
+  color: #777;
+  font-size: 20px;
+  margin: 0 3px;
+  vertical-align: middle;
+}
 </style>
-, getCategory

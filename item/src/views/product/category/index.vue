@@ -30,7 +30,13 @@
 
     <el-table :data="categoryArr" style="width: 100%" v-loading="loading">
       <el-table-column type="index" align="center" label="序号" />
-      <el-table-column label="类别名称" align="center" prop="name" />
+      <el-table-column label="类别名称" align="center" prop="name">
+        <template slot-scope="scope">
+          <el-link @click="handleGoods(scope.row.id)">{{
+            scope.row.name
+          }}</el-link>
+        </template>
+      </el-table-column>
       <el-table-column label="状态" align="center" prop="status">
         <template slot-scope="scope">
           <el-tag v-if="scope.row.status === 1" size="mini" effect="dark"
@@ -160,7 +166,7 @@ export default {
       fileList: [],
     };
   },
-  async created() {
+  created() {
     this.getCategory();
   },
   methods: {
@@ -203,7 +209,6 @@ export default {
             : await addCategory({ ...this.form });
           this.addLoading = false;
           this.$message.success(this.form.id ? "修改成功！" : "添加成功！");
-          console.log("form", this.form);
           this.getCategory();
           this.dialogVisible = false;
         } catch (e) {
@@ -225,6 +230,9 @@ export default {
     handleQuery() {
       this.queryParams.page = 1;
       this.getCategory();
+    },
+    handleGoods(id) {
+      this.$router.push({ path: "/product/product/goods", query: { id } });
     },
   },
 };
