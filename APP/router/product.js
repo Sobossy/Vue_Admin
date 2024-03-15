@@ -48,7 +48,7 @@ router.post('/delCategory', async (req, res) => {
 router.post('/addGoods', async (req, res) => {
   const { name, url, price, sellAmount, inventory, favorites, address, categoryId } = req.body
   let sql =
-    'INSERT INTO product_info (name, url, sellAmount, inventory, favorites, address, category_id) VALUES (?,?,?,?,?,?,?,?)'
+    'INSERT INTO product_info (name, url, sellAmount, price, inventory, favorites, address, category_id) VALUES (?,?,?,?,?,?,?,?)'
   await pools({
     sql,
     val: [name, url, sellAmount, price, inventory, favorites, address, categoryId],
@@ -65,35 +65,36 @@ router.post('/getGoods', async (req, res) => {
   let obj = req.body
   let sql = `SELECT id, name, url, price, sellAmount, inventory, favorites, address, category_id AS categoryId, update_time AS updateTime,create_time AS createTime FROM product_info WHERE 1=1 `
   if (obj.minPrice && obj.maxPrice) {
-    sql += ` AND price >= ${minPrice} AND price <= ${maxPrice}`
+    sql += ` AND price >= ${obj.minPrice} AND price <= ${obj.maxPrice} `
   } else if (obj.minPrice) {
-    sql += ` AND price >= ${minPrice}`
+    sql += ` AND price >= ${obj.minPrice} `
   } else if (obj.maxPrice) {
-    sql += ` AND price <= ${maxPrice}`
+    sql += ` AND price <= ${obj.maxPrice} `
   }
   if (obj.minInventory && obj.maxInventory) {
-    sql += ` AND inventory >= ${minInventory} AND inventory <= ${maxInventory}`
+    sql += ` AND inventory >= ${obj.minInventory} AND inventory <= ${obj.maxInventory}`
   } else if (obj.minInventory) {
-    sql += ` AND inventory >= ${minInventory}`
+    sql += ` AND inventory >= ${obj.minInventory}`
   } else if (obj.maxInventory) {
-    sql += ` AND inventory <= ${maxInventory}`
+    sql += ` AND inventory <= ${obj.maxInventory}`
   }
   if (obj.minFavorites && obj.maxFavorites) {
-    sql += ` AND favorites >= ${minFavorites} AND favorites <= ${maxFavorites}`
+    sql += ` AND favorites >= ${obj.minFavorites} AND favorites <= ${obj.maxFavorites}`
   } else if (obj.minFavorites) {
-    sql += ` AND favorites >= ${minFavorites}`
+    sql += ` AND favorites >= ${obj.minFavorites}`
   } else if (obj.maxFavorites) {
-    sql += ` AND favorites <= ${maxFavorites}`
+    sql += ` AND favorites <= ${obj.maxFavorites}`
   }
   if (obj.minSellAmount && obj.maxSellAmount) {
-    sql += ` AND sellAmount >= ${minSellAmount} AND sellAmount <= ${maxSellAmount}`
+    sql += ` AND sellAmount >= ${obj.minSellAmount} AND sellAmount <= ${obj.maxSellAmount}`
   } else if (obj.minSellAmount) {
-    sql += ` AND sellAmount >= ${minSellAmount}`
+    sql += ` AND sellAmount >= ${obj.minSellAmount}`
   } else if (obj.maxSellAmount) {
-    sql += ` AND sellAmount <= ${maxSellAmount}`
+    sql += ` AND sellAmount <= ${obj.maxSellAmount}`
   }
   sql = utils.setLike(sql, 'name', obj.name)
   sql = utils.setLike(sql, 'address', obj.address)
+  sql = utils.setLike(sql, 'category_id', obj.categoryId)
   //将信息响应给前端
   let { total } = await utils.getSum({ sql, name: 'product_info', res, req })
   sql += ` ORDER BY id DESC`

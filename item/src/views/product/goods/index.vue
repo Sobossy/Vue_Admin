@@ -1,6 +1,21 @@
 <template>
   <div class="box">
     <el-form :model="queryParams" ref="queryForm" :inline="true">
+      <el-form-item label="所属类别" prop="categoryId">
+        <el-select
+          v-model="queryParams.categoryId"
+          placeholder="请选择所属类别"
+          size="small"
+          clearable
+        >
+          <el-option
+            v-for="item in categoryList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="商品信息" prop="name">
         <el-input
           v-model="queryParams.name"
@@ -23,20 +38,33 @@
           :precision="2"
           :step="0.1"
           :min="0"
-        />-
+          size="small"
+        />
+        <span class="inputRadius">-</span>
         <el-input-number
           v-model="queryParams.maxPrice"
           :precision="2"
           :step="0.1"
+          size="small"
         />
       </el-form-item>
       <el-form-item label="销量区间">
-        <el-input-number v-model="queryParams.minSellAmount" :min="0" />-
-        <el-input-number v-model="queryParams.maxSellAmount" />
+        <el-input-number
+          v-model="queryParams.minSellAmount"
+          :min="0"
+          size="small"
+        />
+        <span class="inputRadius">-</span>
+        <el-input-number v-model="queryParams.maxSellAmount" size="small" />
       </el-form-item>
       <el-form-item label="收藏数区间">
-        <el-input-number v-model="queryParams.minFavorites" :min="0" />-
-        <el-input-number v-model="queryParams.maxFavorites" />
+        <el-input-number
+          v-model="queryParams.minFavorites"
+          :min="0"
+          size="small"
+        />
+        <span class="inputRadius">-</span>
+        <el-input-number v-model="queryParams.maxFavorites" size="small" />
       </el-form-item>
       <el-form-item>
         <el-button
@@ -64,7 +92,7 @@
       <el-table-column label="图片" align="center" prop="url">
         <template slot-scope="scope">
           <el-image
-            style="width: 50px; height: 50px"
+            style="width: 70px; height: 70px"
             :src="scope.row.url"
             :preview-src-list="[scope.row.url]"
             fit="cover"
@@ -129,6 +157,20 @@
         :rules="rules"
         ref="ruleForm"
       >
+        <el-form-item label="所属类别" prop="categoryId">
+          <el-select
+            v-model="form.categoryId"
+            placeholder="请选择所属类别"
+            size="small"
+          >
+            <el-option
+              v-for="item in categoryList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入名称" />
         </el-form-item>
@@ -169,7 +211,13 @@
   </div>
 </template>
 <script>
-import { addGoods, getGoods, upGoods, delGoods } from "@/api/product";
+import {
+  addGoods,
+  getGoods,
+  upGoods,
+  delGoods,
+  getCategory,
+} from "@/api/product";
 import { formatUTC } from "@/utils";
 import upFile from "@/components/upFile";
 export default {
@@ -181,6 +229,7 @@ export default {
         page: 1,
         size: 10,
       },
+      categoryList: [],
       total: 0,
       loading: false,
       addLoading: false,
@@ -197,6 +246,9 @@ export default {
             message: "长度在 2 到 15 个字符",
             trigger: "blur",
           },
+        ],
+        categoryId: [
+          { required: true, message: "请输入价格", trigger: "blur" },
         ],
         price: [{ required: true, message: "请输入价格", trigger: "blur" }],
         inventory: [{ required: true, message: "请录入库存", trigger: "blur" }],
@@ -216,14 +268,22 @@ export default {
     };
   },
   async created() {
-    await this.getGoods();
+    if (this.$route.query.id) {
+      this.queryParams.categoryId = this.$route.query.id;
+    }
+    await this.getCategoryList();
+    this.getGoods();
+  },
+  activated() {
+    // 在组件被激活时执行的操作
+    if (this.$route.query.id) {
+      this.queryParams.categoryId = this.$route.query.id;
+    }
+    this.getGoods();
   },
   methods: {
     formatTimeUTC(utcString, format = "YYYY-MM-DD HH:mm:ss") {
       return formatUTC(utcString, format);
-    },
-    handleChange(value) {
-      console.log(value);
     },
     resetForm() {
       this.form = { status: 1 };
@@ -268,7 +328,6 @@ export default {
             : await addGoods({ ...this.form });
           this.addLoading = false;
           this.$message.success(this.form.id ? "修改成功！" : "添加成功！");
-          console.log("form", this.form);
           this.getGoods();
           this.dialogVisible = false;
         } catch (e) {
@@ -294,6 +353,13 @@ export default {
       this.queryParams.page = 1;
       this.getGoods();
     },
+    async getCategoryList() {
+      const { data } = await getCategory({
+        page: 1,
+        size: 1000,
+      });
+      this.categoryList = data;
+    },
   },
 };
 </script>
@@ -304,5 +370,11 @@ export default {
 .color-title {
   margin-bottom: 10px;
   color: #000;
+}
+.inputRadius {
+  color: #777;
+  font-size: 20px;
+  margin: 0 3px;
+  vertical-align: middle;
 }
 </style>
