@@ -1,12 +1,11 @@
 const mysql = require('mysql')
 const pool = mysql.createPool({
-  // host: '127.0.0.1',
-  host: 'localhost',
-  port: 3307,
+  host: '127.0.0.1',
+  port: 3306,
   user: 'root',
-  password: '@Zyj02141016',
+  password: 'root',
   database: 'vue_admin',
   connectionLimit: 15,
-  // dateStrings: true,
+  dateStrings: true,
 })
 module.exports = pool
