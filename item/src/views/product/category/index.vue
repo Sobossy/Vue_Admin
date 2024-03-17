@@ -32,7 +32,7 @@
       <el-table-column type="index" align="center" label="序号" />
       <el-table-column label="类别名称" align="center" prop="name">
         <template slot-scope="scope">
-          <el-link @click="handleGoods(scope.row.id)">{{
+          <el-link type="primary" @click="handleGoods(scope.row.id)">{{
             scope.row.name
           }}</el-link>
         </template>
